@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Money Allocator PRO | Sistema Eker Avanzato</title>
+
+  <!-- Chart.js per grafici -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <!-- html2pdf per esportare in PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+
+    body{
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+      background:radial-gradient(circle at top,#1e293b 0,#020617 55%);
+      color:#0f172a;
+      min-height:100vh;
+      padding:24px;
+    }
+
+    .shell{
+      max-width:1120px;
+      margin:0 auto;
+    }
+
+    .hero{
+      color:#e5e7eb;
+      text-align:center;
+      margin-bottom:24px;
+    }
+
+    .hero h1{
+      font-size:32px;
+      font-weight:800;
+      letter-spacing:-0.04em;
+      margin-bottom:8px;
+    }
+
+    .hero p{
+      font-size:14px;
+      opacity:.8;
+    }
+
+    .badge-row{
+      display:flex;
+      justify-content:center;
+      gap:12px;
+      margin-top:12px;
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.18em;
+    }
+
+    .badge{
+      padding:4px 10px;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,.5);
+      background:rgba(15,23,42,.5);
+    }
+
+    .app-card{
+      background:#f9fafb;
+      border-radius:24px;
+      padding:20px;
+      box-shadow:0 24px 60px rgba(15,23,42,.45);
+      display:grid;
+      grid-template-columns:1.1fr 1.1fr;
+      gap:20px;
+    }
+
+    /* COLONNA SINISTRA */
+    .section{
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+    }
+
+    .card{
+      background:white;
+      border-radius:18px;
+      padding:16px 18px;
+      border:1px solid #e5e7eb;
+    }
+
+    .card h3{
+      font-size:15px;
+      font-weight:700;
+      color:#0f172a;
+      margin-bottom:8px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+
+    label{
+      font-size:12px;
+      font-weight:600;
+      color:#4b5563;
+      margin-bottom:6px;
+      display:block;
+    }
+
+    .income-input-wrap{
+      position:relative;
+      margin-top:4px;
+    }
+
+    .income-input-wrap span{
+      position:absolute;
+      top:50%;
+      left:12px;
+      transform:translateY(-50%);
+      font-weight:600;
+      color:#6b7280;
+    }
+
+    input[type="number"]{
+      width:100%;
+      padding:12px 12px 12px 30px;
+      border-radius:10px;
+      border:2px solid #e5e7eb;
+      font-size:16px;
+      font-weight:600;
+      outline:none;
+      background:#f9fafb;
+      transition:border-color .15s,box-shadow .15s,background .15s;
+    }
+
+    input[type="number"]:focus{
+      border-color:#4f46e5;
+      background:white;
+      box-shadow:0 0 0 3px rgba(79,70,229,.2);
+    }
+
+    .strategy-buttons{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:8px;
+      margin-top:8px;
+    }
+
+    .strategy-btn{
+      border-radius:999px;
+      border:1px solid #e5e7eb;
+      padding:8px 10px;
+      font-size:11px;
+      font-weight:600;
+      text-transform:uppercase;
+      color:#4b5563;
+      background:white;
+      cursor:pointer;
+      transition:.15s;
+    }
+
+    .strategy-btn span{
+      font-size:10px;
+      font-weight:500;
+      color:#9ca3af;
+      display:block;
+      text-transform:none;
+      margin-top:2px;
+    }
+
+    .strategy-btn.active{
+      border-color:#4f46e5;
+      background:linear-gradient(135deg,#4f46e5,#22c55e);
+      color:white;
+    }
+
+    .strategy-btn.active span{
+      color:#e5e7eb;
+    }
+
+    .strategy-desc{
+      font-size:11px;
+      color:#6b7280;
+      margin-top:6px;
+      line-height:1.5;
+    }
+
+    .allocation-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:10px;
+      margin-top:6px;
+    }
+
+    .allocation-item{
+      border-radius:14px;
+      padding:10px 10px 12px;
+      border:1px solid #e5e7eb;
+      background:#f9fafb;
+      position:relative;
+      overflow:hidden;
+    }
+
+    .allocation-item::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      opacity:.04;
+      background:radial-gradient(circle at top left,white,transparent 55%);
+      pointer-events:none;
+    }
+
+    .allocation-label{
+      font-size:10px;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      color:#6b7280;
+      font-weight:700;
+      margin-bottom:4px;
+      display:flex;
+      justify-content:space-between;
+    }
+
+    .allocation-percentage{
+      font-size:17px;
+      font-weight:800;
+      color:#111827;
+      margin-bottom:2px;
+    }
+
+    .allocation-amount{
+      font-size:14px;
+      font-weight:700;
+      color:#4f46e5;
+    }
+
+    .allocation-pill{
+      width:5px;
+      border-radius:999px;
+      position:absolute;
+      left:0;
+      top:8px;
+      bottom:8px;
+    }
+
+    .pill-necessities{background:#ef4444}
+    .pill-freedom{background:#22c55e}
+    .pill-play{background:#f59e0b}
+    .pill-savings{background:#3b82f6}
+    .pill-education{background:#8b5cf6}
+    .pill-give{background:#ec4899}
+
+    .insights-box{
+      border-radius:12px;
+      padding:10px 12px;
+      background:linear-gradient(135deg,#eef2ff,#ecfdf5);
+      border:1px solid #e0f2fe;
+      font-size:12px;
+      color:#1f2937;
+      margin-bottom:6px;
+    }
+
+    .insights-box strong{color:#4f46e5}
+
+    .insights-box + .insights-box{margin-top:6px}
+
+    /* COLONNA DESTRA */
+    .chart-shell{
+      height:260px;
+      position:relative;
+    }
+
+    .goals-section .goal-item{
+      border-bottom:1px dashed #e5e7eb;
+      padding:6px 0 10px;
+    }
+
+    .goals-section .goal-item:last-child{
+      border-bottom:none;
+    }
+
+    .goal-header{
+      display:flex;
+      justify-content:space-between;
+      font-size:12px;
+      font-weight:600;
+      color:#111827;
+    }
+
+    .goal-caption{
+      font-size:11px;
+      color:#6b7280;
+      margin-top:2px;
+    }
+
+    .progress-bar{
+      height:8px;
+      border-radius:999px;
+      background:#e5e7eb;
+      overflow:hidden;
+      margin-top:6px;
+    }
+
+    .progress-fill{
+      height:100%;
+      border-radius:999px;
+      background:linear-gradient(90deg,#4f46e5,#22c55e);
+      width:0;
+      transition:width .25s;
+    }
+
+    .summary-row{
+      display:flex;
+      justify-content:space-between;
+      font-size:12px;
+      padding:4px 0;
+      border-bottom:1px dashed #e5e7eb;
+    }
+
+    .summary-row:last-child{border-bottom:none}
+
+    .summary-row span:first-child{
+      color:#6b7280;
+    }
+
+    .summary-row span:last-child{
+      font-weight:600;
+      color:#111827;
+    }
+
+    .buttons-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:10px;
+    }
+
+    .btn{
+      border-radius:999px;
+      padding:8px 14px;
+      font-size:12px;
+      font-weight:600;
+      border:none;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      transition:.15s;
+    }
+
+    .btn-primary{
+      background:linear-gradient(135deg,#4f46e5,#22c55e);
+      color:white;
+      box-shadow:0 8px 20px rgba(37,99,235,.35);
+    }
+
+    .btn-primary:hover{
+      transform:translateY(-1px);
+      box-shadow:0 12px 24px rgba(37,99,235,.45);
+    }
+
+    .btn-secondary{
+      background:white;
+      color:#111827;
+      border:1px solid #e5e7eb;
+    }
+
+    .btn-secondary:hover{
+      background:#f3f4f6;
+    }
+
+    .footer-note{
+      margin-top:10px;
+      font-size:11px;
+      color:#9ca3af;
+      text-align:center;
+    }
+
+    .footer-note strong{color:#e5e7eb}
+
+    @media (max-width:880px){
+      .app-card{grid-template-columns:1fr}
+      body{padding:16px}
+    }
+  </style>
+</head>
+<body>
+  <div class="shell" id="app-root">
+    <header class="hero">
+      <h1>💰 Money Allocator PRO</h1>
+      <p>Pianifica il tuo flusso di cassa come un imprenditore, non come un dipendente.</p>
+      <div class="badge-row">
+        <div class="badge">100% privacy – dati solo nel browser</div>
+        <div class="badge">Pensato per cash-flow & asset</div>
+      </div>
+    </header>
+
+    <main class="app-card">
+      <!-- SINISTRA -->
+      <section class="section">
+        <div class="card">
+          <h3>📊 Il tuo reddito</h3>
+          <label for="income">Reddito mensile netto</label>
+          <div class="income-input-wrap">
+            <span>€</span>
+            <input id="income" type="number" min="0" step="0.01" placeholder="Es: 2500">
+          </div>
+          <small style="font-size:11px;color:#9ca3af;display:block;margin-top:4px">
+            Suggerimento: usa il reddito medio degli ultimi 3 mesi, non un mese fortunato.
+          </small>
+        </div>
+
+        <div class="card">
+          <h3>🎯 Strategie di allocazione</h3>
+          <div class="strategy-buttons">
+            <button class="strategy-btn active" data-strategy="eker">
+              Eker 50/10
+              <span>Starter per cambiare abitudini</span>
+            </button>
+            <button class="strategy-btn" data-strategy="50-30-20">
+              50 / 30 / 20
+              <span>Classico personale</span>
+            </button>
+            <button class="strategy-btn" data-strategy="investor">
+              Investor Mode
+              <span>Per chi vuole asset</span>
+            </button>
+          </div>
+          <p id="strategyDesc" class="strategy-desc"></p>
+        </div>
+
+        <div class="card">
+          <h3>🎁 Allocazione corrente</h3>
+          <div id="allocations" class="allocation-grid"></div>
+        </div>
+
+        <div class="card">
+          <h3>💡 Insights smart</h3>
+          <div id="insights"></div>
+        </div>
+      </section>
+
+      <!-- DESTRA -->
+      <section class="section">
+        <div class="card">
+          <h3>📈 Grafico allocazione</h3>
+          <div class="chart-shell">
+            <canvas id="allocationChart"></canvas>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>🎯 Obiettivi annuali</h3>
+          <div id="goals" class="goals-section"></div>
+        </div>
+
+        <div class="card">
+          <h3>📋 Riepilogo & export</h3>
+          <div id="summary" class="monthly-summary"></div>
+          <div class="buttons-row">
+            <button class="btn btn-primary" id="pdfBtn">📥 Scarica piano in PDF</button>
+            <button class="btn btn-secondary" id="resetBtn">🔄 Cancella dati</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <p class="footer-note">
+      Prossimo step “imprenditoriale”: <strong>versione PRO</strong> con storico multi-mese, scenari “se smetto di lavorare” e condivisione del piano con il partner.
+    </p>
+  </div>
+
+  <script>
+    // ====== CONFIG STRATEGIE ======
+    const strategies = {
+      eker: {
+        name: "Sistema Eker 50/10/10/10/10/10",
+        desc: "50% necessità, 10% libertà finanziaria, 10% gioco, 10% risparmio LT, 10% educazione, 10% donazione.",
+        allocations: { necessities: 0.50, freedom: 0.10, play: 0.10, savings: 0.10, education: 0.10, give: 0.10 }
+      },
+      "50-30-20": {
+        name: "Sistema 50 / 30 / 20",
+        desc: "50% necessità, 30% stile di vita (gioco+extra), 20% risparmio/investimenti. Educazione e donazione opzionali.",
+        allocations: { necessities: 0.50, freedom: 0.15, play: 0.15, savings: 0.20, education: 0.00, give: 0.00 }
+      },
+      investor: {
+        name: "Investor Mode",
+        desc: "Stile imprenditoriale: abbassi le spese, alzi risparmio ed educazione per costruire asset.",
+        allocations: { necessities: 0.40, freedom: 0.10, play: 0.10, savings: 0.25, education: 0.10, give: 0.05 }
+      }
+    };
+
+    const LABELS = {
+      necessities: { label: "Necessità", icon: "🏠", pill: "pill-necessities" },
+      freedom: { label: "Libertà fin.", icon: "🚀", pill: "pill-freedom" },
+      play: { label: "Gioco", icon: "🎮", pill: "pill-play" },
+      savings: { label: "Risparmio LT", icon: "💎", pill: "pill-savings" },
+      education: { label: "Educazione", icon: "📚", pill: "pill-education" },
+      give: { label: "Donazione", icon: "❤️", pill: "pill-give" }
+    };
+
+    const incomeInput = document.getElementById("income");
+    const strategyDesc = document.getElementById("strategyDesc");
+    const allocationsDiv = document.getElementById("allocations");
+    const insightsDiv = document.getElementById("insights");
+    const goalsDiv = document.getElementById("goals");
+    const summaryDiv = document.getElementById("summary");
+    const pdfBtn = document.getElementById("pdfBtn");
+    const resetBtn = document.getElementById("resetBtn");
+
+    let currentStrategyKey = "eker";
+    let chart;
+
+    // ====== INIT ======
+    function loadState(){
+      const saved = JSON.parse(localStorage.getItem("moneyAllocator_state") || "{}");
+      if(saved.income) incomeInput.value = saved.income;
+      if(saved.strategy && strategies[saved.strategy]) currentStrategyKey = saved.strategy;
+    }
+
+    function saveState(){
+      localStorage.setItem("moneyAllocator_state", JSON.stringify({
+        income: incomeInput.value,
+        strategy: currentStrategyKey
+      }));
+    }
+
+    function formatCurrency(v){
+      return "€" + (v || 0).toLocaleString("it-IT", { minimumFractionDigits:2, maximumFractionDigits:2 });
+    }
+
+    function renderStrategyButtons(){
+      document.querySelectorAll(".strategy-btn").forEach(btn=>{
+        const key = btn.dataset.strategy;
+        btn.classList.toggle("active", key === currentStrategyKey);
+      });
+      strategyDesc.textContent = strategies[currentStrategyKey].desc;
+    }
+
+    function computeAllocations(income){
+      const s = strategies[currentStrategyKey].allocations;
+      return Object.fromEntries(
+        Object.entries(s).map(([k, p]) => [k, income * p])
+      );
+    }
+
+    function renderAllocations(amounts){
+      const allocConfig = strategies[currentStrategyKey].allocations;
+      const html = Object.entries(allocConfig)
+        .filter(([_, pct]) => pct > 0)
+        .map(([key, pct])=>{
+          const meta = LABELS[key];
+          return `
+            <div class="allocation-item">
+              <div class="allocation-pill ${meta.pill}"></div>
+              <div class="allocation-label">
+                <span>${meta.icon} ${meta.label}</span>
+                <span>${(pct*100).toFixed(0)}%</span>
+              </div>
+              <div class="allocation-percentage">${(pct*100).toFixed(0)}%</div>
+              <div class="allocation-amount">${formatCurrency(amounts[key])}</div>
+            </div>
+          `;
+        }).join("");
+      allocationsDiv.innerHTML = html || "<p style='font-size:12px;color:#9ca3af;'>Imposta un reddito per vedere la suddivisione.</p>";
+    }
+
+    function renderChart(amounts){
+      const ctx = document.getElementById("allocationChart").getContext("2d");
+      const labels = [];
+      const data = [];
+      const colors = [];
+
+      const colorMap = {
+        necessities:"#ef4444",
+        freedom:"#22c55e",
+        play:"#f59e0b",
+        savings:"#3b82f6",
+        education:"#8b5cf6",
+        give:"#ec4899"
+      };
+
+      for(const [key, meta] of Object.entries(LABELS)){
+        const value = amounts[key] || 0;
+        if(value > 0){
+          labels.push(meta.icon+" "+meta.label);
+          data.push(value);
+          colors.push(colorMap[key]);
+        }
+      }
+
+      if(chart) chart.destroy();
+      chart = new Chart(ctx,{
+        type:"doughnut",
+        data:{ labels, datasets:[{ data, backgroundColor:colors, borderColor:"#f9fafb", borderWidth:3 }]},
+        options:{
+          responsive:true,
+          maintainAspectRatio:false,
+          plugins:{
+            legend:{ position:"bottom", labels:{ font:{size:11} } }
+          }
+        }
+      });
+    }
+
+    function renderGoals(amounts){
+      const goalsCfg = {
+        savings: { label:"💎 Risp. Long‑Term", years:1 },
+        freedom: { label:"🚀 Libertà Finanziaria", years:5 },
+        education: { label:"📚 Educazione", years:1 }
+      };
+      const html = Object.entries(goalsCfg).map(([key,cfg])=>{
+        const monthly = amounts[key] || 0;
+        const target = monthly * 12 * cfg.years;
+        const progress = monthly ? Math.min(100, (monthly / (target/ (cfg.years*12))) * 100) : 0;
+        return `
+          <div class="goal-item">
+            <div class="goal-header">
+              <span>${cfg.label}</span>
+              <span>${formatCurrency(monthly)}/mese</span>
+            </div>
+            <div class="goal-caption">
+              In ${cfg.years} anno/i → circa ${formatCurrency(target)} accantonati.
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width:${progress}%"></div>
+            </div>
+          </div>
+        `;
+      }).join("");
+      goalsDiv.innerHTML = html;
+    }
+
+    function renderInsights(amounts,income){
+      const ins = [];
+      const total = Object.values(amounts).reduce((a,b)=>a+b,0);
+
+      if(!income || total===0){
+        insightsDiv.innerHTML = "<div class='insights-box'>Inserisci il reddito e scegli una strategia per vedere gli insight.</div>";
+        return;
+      }
+
+      // 1) focus asset
+      if(amounts.savings >= income*0.2){
+        ins.push(`✅ Stai destinando almeno il 20% a risparmi/investimenti: continui così stai costruendo asset invece di solo sopravvivere.`);
+      } else {
+        ins.push(`⚠️ Meno del 20% va a risparmio/investimenti. Obiettivo imprenditoriale: porta il totale al 25–30% nei prossimi 6 mesi.`);
+      }
+
+      // 2) investire su di te
+      if(amounts.education > 0){
+        ins.push(`📚 Con ${formatCurrency(amounts.education)} al mese in educazione puoi permetterti 2–4 libri/corsi al mese: è il motore del tuo capitale umano.`);
+      }
+
+      // 3) libertà vs necessità
+      if(amounts.necessities <= income*0.6){
+        ins.push(`💪 Le necessità pesano meno del 60% del reddito: hai margine per accelerare su asset e libertà finanziaria.`);
+      } else {
+        ins.push(`🧯 Le necessità assorbono oltre il 60% del reddito. Una mente imprenditoriale taglia costi ricorrenti e li riassegna a risparmi/asset.`);
+      }
+
+      insightsDiv.innerHTML = ins.map(t=>`<div class="insights-box">${t}</div>`).join("");
+    }
+
+    function renderSummary(amounts){
+      const total = Object.values(amounts).reduce((a,b)=>a+b,0);
+      const annualSavings = (amounts.savings || 0) * 12;
+      const growthBucket = (amounts.freedom||0)+(amounts.play||0)+(amounts.education||0)+(amounts.give||0);
+
+      summaryDiv.innerHTML = `
+        <div class="summary-row"><span>Reddito mensile mappato</span><span>${formatCurrency(total)}</span></div>
+        <div class="summary-row"><span>Necessità</span><span>${formatCurrency(amounts.necessities||0)}</span></div>
+        <div class="summary-row"><span>Budget stile di vita / gioco</span><span>${formatCurrency((amounts.play||0))}</span></div>
+        <div class="summary-row"><span>Crescita personale & impatto</span><span>${formatCurrency(growthBucket)}</span></div>
+        <div class="summary-row"><span>Risparmio annuale potenziale</span><span>${formatCurrency(annualSavings)}</span></div>
+      `;
+    }
+
+    function updateAll(){
+      const income = parseFloat(incomeInput.value || "0");
+      if(!income || income <= 0){
+        allocationsDiv.innerHTML = "<p style='font-size:12px;color:#9ca3af;'>Inserisci il reddito per iniziare.</p>";
+        insightsDiv.innerHTML = "<div class='insights-box'>Quando inserisci il reddito, il sistema ti mostra subito come si distribuisce e che leva puoi usare.</div>";
+        goalsDiv.innerHTML = "";
+        summaryDiv.innerHTML = "";
+        if(chart) chart.destroy();
+        saveState();
+        return;
+      }
+
+      const amounts = computeAllocations(income);
+      renderAllocations(amounts);
+      renderChart(amounts);
+      renderGoals(amounts);
+      renderInsights(amounts,income);
+      renderSummary(amounts);
+      saveState();
+    }
+
+    // ====== EVENTI ======
+    document.querySelectorAll(".strategy-btn").forEach(btn=>{
+      btn.addEventListener("click",()=>{
+        currentStrategyKey = btn.dataset.strategy;
+        renderStrategyButtons();
+        updateAll();
+      });
+    });
+
+    incomeInput.addEventListener("input",()=>{
+      updateAll();
+    });
+
+    pdfBtn.addEventListener("click",()=>{
+      const element = document.getElementById("app-root");
+      const opt = {
+        margin: 8,
+        filename: "money-allocator-pro.pdf",
+        image: { type:"jpeg", quality:0.98 },
+        html2canvas: { scale:2 },
+        jsPDF: { unit:"mm", format:"a4", orientation:"portrait" }
+      };
+      html2pdf().set(opt).from(element).save();
+    });
+
+    resetBtn.addEventListener("click",()=>{
+      if(!confirm("Vuoi cancellare reddito e strategia salvati?")) return;
+      incomeInput.value = "";
+      localStorage.removeItem("moneyAllocator_state");
+      updateAll();
+    });
+
+    // ====== BOOT ======
+    loadState();
+    renderStrategyButtons();
+    updateAll();
+    Move index.html into public
+  </script>
+</body>
+</html>
